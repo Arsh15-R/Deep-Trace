@@ -1,0 +1,123 @@
+// DeepTrace PostgreSQL Database Schema (Prisma ORM)
+// Compliant with BNSS 2023 Section 63 Chain-of-Custody
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 1. Evidence Case Ledger
+model Case {
+  id                String            @id @default(uuid())
+  caseNumber        String            @unique // e.g. DT-2026-8812
+  status            String            @default("COMPLETED") // PENDING, ANALYZING, COMPLETED
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  
+  // Relations
+  evidenceFiles     EvidenceFile[]
+  certificate       BNSSCertificate?
+  auditLogs         AuditTrail[]
+
+  @@index([caseNumber])
+}
+
+// 2. Electronic Evidence Record (Metadata & IPFS pointer only — NO RAW BLOBS IN DB)
+model EvidenceFile {
+  id                String            @id @default(uuid())
+  caseId            String
+  case              Case              @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  
+  fileName          String
+  fileSizeBytes     BigInt
+  mimeType          String
+  acquisitionMethod String            // TELEGRAM_BOT, CHROME_EXT, WEB_DASHBOARD
+  
+  // Cryptographic Digests (Calculated at instant of acquisition under BNSS Sec 63)
+  sha256Hash        String            @unique
+  blake2bHash       String?
+  
+  // Immutable IPFS Vault Pointer (Pinata Decentralized Pinning)
+  ipfsCid           String            @unique // e.g. bafybeicciqduqsz6pecwgtps...
+  ipfsGatewayUrl    String
+  isPinnedToIpfs    Boolean           @default(true)
+  
+  // Relations
+  metadataRecord    MetadataRecord?
+  forensicResult    ForensicResult?
+  
+  createdAt         DateTime          @default(now())
+
+  @@index([sha256Hash])
+  @@index([ipfsCid])
+}
+
+// 3. Multi-Modal AI Forensics & Attribution Telemetry
+model ForensicResult {
+  id                    String        @id @default(uuid())
+  evidenceFileId        String        @unique
+  evidenceFile          EvidenceFile  @relation(fields: [evidenceFileId], references: [id], onDelete: Cascade)
+  
+  syntheticProbability Float         // 0.0 to 1.0 (e.g. 0.98 = 98%)
+  percentageScore       String        // e.g. "98.0%"
+  verdict               String        // SYNTHETIC, SUSPICIOUS, AUTHENTIC
+  attributedEngine      String        // Midjourney, ElevenLabs, SDXL, Sora, etc.
+  confidenceLevel       String        // LOW, MODERATE, HIGH, VERY_HIGH
+  
+  // Modality-Specific Feature Embeddings & Artifacts
+  metrics               Json          // FFT frequency scores, vocoder phase anomalies, optical flow
+  detectedArtifacts     Json          // Array of detected forensic signatures
+  
+  analyzedAt            DateTime      @default(now())
+}
+
+// 4. Structural & EXIF Metadata Extracted from Record
+model MetadataRecord {
+  id                    String        @id @default(uuid())
+  evidenceFileId        String        @unique
+  evidenceFile          EvidenceFile  @relation(fields: [evidenceFileId], references: [id], onDelete: Cascade)
+  
+  exifData              Json          // Camera Make, Model, Exposure, Software tags
+  containerData         Json          // Resolution, Codec, Color Profile, Audio Sample Rate
+  antiForensicAlerts    Json          // Stripped tags, date manipulations, AI generator stamps
+  hasHardwareSignature  Boolean       @default(false)
+}
+
+// 5. Statutory Court Certificate (BNSS 2023 Section 63 Schedule II)
+model BNSSCertificate {
+  id                    String        @id @default(uuid())
+  caseId                String        @unique
+  case                  Case          @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  
+  certificateNumber     String        @unique // e.g. BNSS-63-DT-8812-20261002
+  statutoryAct          String        @default("Bharatiya Nagarik Suraksha Sanhita, 2023 (Section 63)")
+  
+  // Part C Officer Affirmation Details
+  certifyingOfficer     String
+  officerBadge          String
+  department            String
+  digitalSignatureHash  String
+  courtAdmissibility    String        @default("ADMISSIBLE_BNSS_SEC_63")
+  
+  issuedAt              DateTime      @default(now())
+
+  @@index([certificateNumber])
+}
+
+// 6. Immutable Chain-of-Custody Audit Trail
+model AuditTrail {
+  id                    String        @id @default(uuid())
+  caseId                String
+  case                  Case          @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  
+  action                String        // ACQUIRED, HASHED, PINNED_IPFS, ANALYZED, CERTIFICATE_ISSUED
+  actorName             String
+  actorBadge            String
+  ipAddress             String?
+  timestampNtp          DateTime      @default(now())
+  details               Json
+}

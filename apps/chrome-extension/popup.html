@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>DeepTrace Inspector</title>
+  <style>
+    body {
+      width: 340px;
+      margin: 0;
+      padding: 16px;
+      background: #0f172a;
+      color: #f8fafc;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 13px;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #1e293b;
+      padding-bottom: 10px;
+      margin-bottom: 14px;
+    }
+    .brand {
+      font-weight: 800;
+      font-size: 14px;
+      color: #38bdf8;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: #10b981;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .section-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      color: #94a3b8;
+      font-weight: 700;
+      margin: 12px 0 6px 0;
+    }
+    .upload-zone {
+      border: 2px dashed #334155;
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+      background: #1e293b55;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .upload-zone:hover {
+      border-color: #38bdf8;
+      background: #1e293b;
+    }
+    input[type="file"] {
+      display: none;
+    }
+    .verify-box {
+      display: flex;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    input[type="text"] {
+      flex: 1;
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+    }
+    button.btn {
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 12px;
+    }
+    button.btn:hover {
+      background: #1d4ed8;
+    }
+    .history-item {
+      background: #1e293b;
+      border-radius: 6px;
+      padding: 8px 10px;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+    }
+    .badge {
+      font-size: 10px;
+      font-weight: bold;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .badge-synth { background: #ef444422; color: #ef4444; border: 1px solid #ef444466; }
+    .badge-auth { background: #10b98122; color: #10b981; border: 1px solid #10b98166; }
+    #result-msg {
+      margin-top: 8px;
+      padding: 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="brand">
+      <span class="status-dot"></span> DeepTrace Inspector
+    </div>
+    <span style="font-size: 10px; color: #64748b;">BNSS 2023 Sec 63</span>
+  </div>
+
+  <div class="section-title">Instant Media Audit</div>
+  <div class="upload-zone" id="drop-zone">
+    <div style="font-size: 20px;">📁</div>
+    <div style="margin-top: 4px; font-weight: 600;">Drop media or click to upload</div>
+    <div style="font-size: 11px; color: #64748b; margin-top: 2px;">Images • Audio • Video</div>
+    <input type="file" id="file-input" />
+  </div>
+
+  <div class="section-title">Verify IPFS CID or SHA-256</div>
+  <div class="verify-box">
+    <input type="text" id="verify-input" placeholder="Enter CID (bafybei...) or Hash" />
+    <button class="btn" id="verify-btn">Verify</button>
+  </div>
+  <div id="result-msg"></div>
+
+  <div class="section-title">Recent Audits</div>
+  <div id="history-container">
+    <div style="color: #64748b; font-size: 11px; text-align: center; padding: 8px;">No recent audits logged</div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

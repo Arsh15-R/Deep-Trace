@@ -1,0 +1,43 @@
+/* DeepTrace Monochrome Motion Kit Design Tokens */
+/* Palette: #FFFFFF  #000000  #B0B0B0  #7D7D7D  #4D4D4D */
+
+:root,
+[data-theme="dark"],
+.dark {
+  --bg: #000000;
+  --fg: #ffffff;
+  --muted: #b0b0b0;
+  --subtle: #7d7d7d;
+  --line: #4d4d4d;
+  --surface: rgba(255, 255, 255, 0.04);
+  --hover: rgba(255, 255, 255, 0.07);
+}
+
+[data-theme="light"],
+html:not(.dark) {
+  --bg: #ffffff;
+  --fg: #000000;
+  --muted: #4d4d4d;
+  --subtle: #7d7d7d;
+  --line: #b0b0b0;
+  --surface: rgba(0, 0, 0, 0.03);
+  --hover: rgba(0, 0, 0, 0.06);
+}
+
+/* Pulsing ring for live / critical dots */
+@keyframes ring-pulse {
+  0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--fg, #ffffff) 45%, transparent); }
+  100% { box-shadow: 0 0 0 9px transparent; }
+}
+
+.live-dot {
+  animation: ring-pulse 1.8s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,149 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import "../styles/tokens.css";
+
+:root {
+  /* Apple Light Mode (Default) */
+  --apple-bg: #FBFBFD;
+  --apple-surface: #FFFFFF;
+  --apple-surface-secondary: #F5F5F7;
+  --apple-surface-tertiary: #E8E8ED;
+  --apple-text: #1D1D1F;
+  --apple-text-secondary: #6E6E73;
+  --apple-text-tertiary: #86868B;
+  --apple-hairline: #D2D2D7;
+  --apple-hairline-strong: #BCBCC0;
+  
+  /* Single Apple Accent Blue */
+  --apple-blue: #0071E3;
+  --apple-blue-hover: #0077ED;
+  
+  /* Status / Severity only */
+  --apple-red: #FF3B30;
+  --apple-orange: #FF9500;
+  --apple-green: #34C759;
+
+  --background: var(--apple-bg);
+  --foreground: var(--apple-text);
+  --border: var(--apple-hairline);
+  --accent: var(--apple-blue);
+  --accent-foreground: #FFFFFF;
+  --muted: var(--apple-surface-secondary);
+  --muted-foreground: var(--apple-text-secondary);
+}
+
+.dark {
+  /* Apple Full Dark Mode */
+  --apple-bg: #000000;
+  --apple-surface: #1C1C1E;
+  --apple-surface-secondary: #2C2C2E;
+  --apple-surface-tertiary: #3A3A3C;
+  --apple-text: #F5F5F7;
+  --apple-text-secondary: #86868B;
+  --apple-text-tertiary: #6E6E73;
+  --apple-hairline: #333336;
+  --apple-hairline-strong: #444448;
+  
+  /* Single Apple Accent Blue Dark */
+  --apple-blue: #2997FF;
+  --apple-blue-hover: #3AA0FF;
+  
+  /* Status / Severity only */
+  --apple-red: #FF453A;
+  --apple-orange: #FF9F0A;
+  --apple-green: #30D158;
+
+  --background: var(--apple-bg);
+  --foreground: var(--apple-text);
+  --border: var(--apple-hairline);
+  --accent: var(--apple-blue);
+  --accent-foreground: #FFFFFF;
+  --muted: var(--apple-surface-secondary);
+  --muted-foreground: var(--apple-text-secondary);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+body {
+  background-color: var(--apple-bg);
+  color: var(--apple-text);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", Inter, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+/* Headings: sentence case, high legibility, negative tracking */
+h1, h2, h3, h4, h5, h6 {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", Inter, sans-serif;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+  text-transform: none;
+}
+
+/* Monospace restricted strictly to cryptographic hashes and case IDs */
+code, pre, .font-mono, [data-mono="true"] {
+  font-family: "SF Mono", "JetBrains Mono", Menlo, Consolas, ui-monospace, monospace !important;
+  font-feature-settings: "tnum" on, "zero" on;
+}
+
+/* Apple Vibrancy Material (used strictly for sticky navbar and sheets/modals) */
+.apple-vibrancy {
+  background-color: rgba(251, 251, 253, 0.78);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+.dark .apple-vibrancy {
+  background-color: rgba(28, 28, 30, 0.75);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+.apple-vibrancy-dark {
+  background-color: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+}
+
+/* Apple Focus Rings */
+:focus-visible {
+  outline: 2px solid var(--apple-blue);
+  outline-offset: 2px;
+}
+
+/* Apple Scrollbar (Minimalist) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--apple-hairline);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--apple-hairline-strong);
+}
+
+/* Number count transitions */
+@keyframes applePulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.96); }
+}
+
+.apple-pulse-dot {
+  animation: applePulse 2s ease-in-out infinite;
+}

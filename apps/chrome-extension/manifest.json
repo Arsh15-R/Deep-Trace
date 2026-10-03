@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "DeepTrace — Forensic Media Inspector",
+  "version": "1.0.0",
+  "description": "Dynamic Multi-Modal AI Forensics, Generative Engine Attribution, and BNSS 2023 Sec 63 Legal Compliance.",
+  "permissions": [
+    "contextMenus",
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "DeepTrace Inspector"
+  },
+  "icons": {
+    "48": "icon.png",
+    "128": "icon.png"
+  }
+}
