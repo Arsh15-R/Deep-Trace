@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
@@ -8,16 +8,8 @@ import {
   Search,
   Sun,
   Moon,
-  Shield,
-  CheckCircle2,
-  Lock,
-  ChevronRight,
   Menu,
   X,
-  User,
-  ShieldAlert,
-  LogOut,
-  Sliders,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import OfficerAuthModal from "./OfficerAuthModal";
