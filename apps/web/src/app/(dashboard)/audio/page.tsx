@@ -209,11 +209,21 @@ export default function AudioForensicsPage() {
                   {result.voice_authenticity}
                 </h2>
                 <div className="flex items-center gap-3 mt-2 text-[14px]">
-                  <SeverityDot level="critical" />
+                  <SeverityDot
+                    level={
+                      result.confidence_score >= 0.65
+                        ? "critical"
+                        : result.confidence_score >= 0.40
+                        ? "warning"
+                        : "nominal"
+                    }
+                  />
                   <span className="font-semibold text-apple-text">
-                    {(result.confidence_score * 100).toFixed(1)}% Vocoder Residual Match
+                    {result.confidence_score >= 0.40
+                      ? `${(result.confidence_score * 100).toFixed(1)}% Synthetic Voice Match`
+                      : `${((1 - result.confidence_score) * 100).toFixed(1)}% Authentic Human Voice`}
                   </span>
-                  <span className="text-apple-text-secondary">· ElevenLabs v2 Architecture</span>
+                  <span className="text-apple-text-secondary">· Acoustic Signal Spectrum</span>
                 </div>
               </div>
 
@@ -281,17 +291,33 @@ export default function AudioForensicsPage() {
                 <h4 className="text-[14px] font-semibold text-apple-text">
                   Acoustic Findings
                 </h4>
-                <div className="flex justify-between py-1.5 border-b border-apple-hairline/60">
-                  <span className="text-apple-text-secondary">Pitch Micro-Tremor (F0)</span>
-                  <span className="font-medium text-apple-red">Flat robotic continuity</span>
-                </div>
-                <div className="flex justify-between py-1.5 border-b border-apple-hairline/60">
-                  <span className="text-apple-text-secondary">Phase Discontinuity</span>
-                  <span className="font-medium text-apple-red">99.1% High-band phase gap</span>
-                </div>
+                {result.forensic_signals && result.forensic_signals.length > 0 ? (
+                  result.forensic_signals.map((sig, idx) => (
+                    <div key={idx} className="py-2 border-b border-apple-hairline/60 space-y-0.5">
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium text-apple-text">{sig.name}</span>
+                        <span className={`font-mono text-xs ${sig.score > 0.6 ? "text-apple-red font-semibold" : "text-apple-green"}`}>
+                          {(sig.score * 100).toFixed(0)}%
+                        </span>
+                      </div>
+                      <p className="text-[12px] text-apple-text-secondary">{sig.description}</p>
+                    </div>
+                  ))
+                ) : (
+                  <>
+                    <div className="flex justify-between py-1.5 border-b border-apple-hairline/60">
+                      <span className="text-apple-text-secondary">Pitch Micro-Tremor (F0)</span>
+                      <span className="font-medium text-apple-red">Flat robotic continuity</span>
+                    </div>
+                    <div className="flex justify-between py-1.5 border-b border-apple-hairline/60">
+                      <span className="text-apple-text-secondary">Phase Discontinuity</span>
+                      <span className="font-medium text-apple-red">Vocoder phase gap</span>
+                    </div>
+                  </>
+                )}
                 <div className="flex justify-between py-1.5">
-                  <span className="text-apple-text-secondary">Model Version</span>
-                  <span className="text-apple-text">{result.model_version}</span>
+                  <span className="text-apple-text-secondary">Attributed Provenance</span>
+                  <span className="text-apple-text font-medium">{result.model_version}</span>
                 </div>
               </div>
 

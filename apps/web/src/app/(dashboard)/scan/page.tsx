@@ -263,11 +263,21 @@ export default function MediaScannerPage() {
                   {result.verdict}
                 </h2>
                 <div className="flex items-center gap-3 mt-2 text-[14px]">
-                  <SeverityDot level="critical" />
+                  <SeverityDot
+                    level={
+                      result.ai_probability_score >= 0.65
+                        ? "critical"
+                        : result.ai_probability_score >= 0.40
+                        ? "warning"
+                        : "nominal"
+                    }
+                  />
                   <span className="font-semibold text-apple-text">
-                    {(result.ai_probability_score * 100).toFixed(1)}% Synthetic Match
+                    {result.ai_probability_score >= 0.40
+                      ? `${(result.ai_probability_score * 100).toFixed(1)}% Synthetic Match`
+                      : `${((1 - result.ai_probability_score) * 100).toFixed(1)}% Authentic Confidence`}
                   </span>
-                  <span className="text-apple-text-secondary">· 2D-FFT Azimuthal Artifacts</span>
+                  <span className="text-apple-text-secondary">· 2D-FFT &amp; Signal Spectrum</span>
                 </div>
               </div>
 
@@ -316,6 +326,23 @@ export default function MediaScannerPage() {
               <ScanLine active={true} />
             </div>
 
+            {/* Detected Artifacts Callout if Present */}
+            {result.forensic_details?.detected_artifacts && result.forensic_details.detected_artifacts.length > 0 && (
+              <div className="p-4 rounded-2xl bg-apple-surface-secondary/50 border border-apple-hairline space-y-2">
+                <span className="text-[12px] font-semibold text-apple-text block uppercase tracking-wider">
+                  Detected Forensic Artifacts ({result.forensic_details.detected_artifacts.length})
+                </span>
+                <ul className="space-y-1.5 text-[13px] text-apple-text-secondary">
+                  {result.forensic_details.detected_artifacts.map((art, idx) => (
+                    <li key={idx} className="flex items-start gap-2">
+                      <span className="text-apple-red font-mono">•</span>
+                      <span>{art}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             {/* Analysis Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
               {/* Left Column: Forensic Metrics */}
@@ -326,19 +353,43 @@ export default function MediaScannerPage() {
 
                 <div className="flex justify-between py-2 border-b border-apple-hairline/60">
                   <span className="text-apple-text-secondary">Photo-Response Non-Uniformity</span>
-                  <span className="font-medium text-apple-red">Absence of Sensor PRNU</span>
+                  <span className={`font-medium ${
+                    result.forensic_details?.metrics?.noise_residual_anomaly_score > 0.6
+                      ? "text-apple-red"
+                      : "text-apple-green"
+                  }`}>
+                    {result.forensic_details?.metrics?.noise_std_dev !== undefined
+                      ? `σ=${result.forensic_details.metrics.noise_std_dev} (${result.forensic_details.metrics.noise_residual_anomaly_score > 0.6 ? "Abnormal" : "Natural PRNU"})`
+                      : (result.ai_probability_score > 0.6 ? "Absence of Sensor PRNU" : "Natural Sensor Noise")}
+                  </span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-apple-hairline/60">
                   <span className="text-apple-text-secondary">Bayer CFA demosaicing</span>
-                  <span className="font-medium text-apple-red">Discontinuous interpolation</span>
+                  <span className={`font-medium ${
+                    (result.forensic_details?.metrics?.bayer_cfa_correlation ?? 0) < 0.35 && result.ai_probability_score > 0.4
+                      ? "text-apple-red"
+                      : "text-apple-green"
+                  }`}>
+                    {result.forensic_details?.metrics?.bayer_cfa_correlation !== undefined
+                      ? `r=${result.forensic_details.metrics.bayer_cfa_correlation} (${result.forensic_details.metrics.bayer_cfa_correlation > 0.4 ? "Optical Verified" : "Non-Optical"})`
+                      : (result.ai_probability_score > 0.6 ? "Discontinuous interpolation" : "Continuous Bayer filter")}
+                  </span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-apple-hairline/60">
-                  <span className="text-apple-text-secondary">Biometric landmark liveness</span>
-                  <span className="font-medium text-apple-orange">Inconsistent eye micro-saccades</span>
+                  <span className="text-apple-text-secondary">2D-FFT Spectral Decay</span>
+                  <span className={`font-medium ${
+                    result.forensic_details?.metrics?.fft_frequency_anomaly_score > 0.5
+                      ? "text-apple-red"
+                      : "text-apple-text"
+                  }`}>
+                    {result.forensic_details?.metrics?.spectral_decay_slope !== undefined
+                      ? `α=${result.forensic_details.metrics.spectral_decay_slope} (Peak ${result.forensic_details.metrics.fft_peak_ratio}x)`
+                      : "Azimuthal decay standard"}
+                  </span>
                 </div>
                 <div className="flex justify-between py-2">
-                  <span className="text-apple-text-secondary">Engine Signature</span>
-                  <span className="text-apple-text">{result.suspected_engine}</span>
+                  <span className="text-apple-text-secondary">Attributed Provenance</span>
+                  <span className="text-apple-text font-medium">{result.suspected_engine}</span>
                 </div>
               </div>
 
