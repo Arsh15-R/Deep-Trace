@@ -16,8 +16,17 @@ import {
   Shield,
   Download,
   Activity,
+  Globe,
+  Link2,
+  AlertCircle,
+  RefreshCw,
 } from "lucide-react";
-import { analyzeMedia, MediaAnalysisResponse, buildSection65bPdfUrl } from "@/lib/api";
+import {
+  analyzeMedia,
+  analyzeMediaUrl,
+  MediaAnalysisResponse,
+  buildSection65bPdfUrl,
+} from "@/lib/api";
 import {
   Page,
   TiltCard,
@@ -29,8 +38,11 @@ import {
 } from "@/animations";
 
 export default function MediaScannerPage() {
+  const [scanMode, setScanMode] = useState<"file" | "url">("file");
   const [isDragging, setIsDragging] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
+  const [mediaUrl, setMediaUrl] = useState("");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [result, setResult] = useState<MediaAnalysisResponse | null>(null);
   const [fileName, setFileName] = useState("");
   const [fileType, setFileType] = useState<"image" | "video">("image");
@@ -42,29 +54,47 @@ export default function MediaScannerPage() {
     setFileName(file.name);
     setFileType(file.type.startsWith("video") ? "video" : "image");
     setIsScanning(true);
+    setErrorMessage(null);
 
     try {
       const res = await analyzeMedia(file);
       setResult(res);
-    } catch {
-      // Realistic fallback mock data for testing
-      setResult({
-        status: "completed",
-        file_name: file.name,
-        sha256_hash: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        ai_probability_score: 0.942,
-        verdict: "Confirmed Diffusion Face Swap",
-        suspected_engine: "Spatial 2D-FFT + Bayer CFA Model v4",
-        timestamp: "2026-10-02T19:15:30Z",
-        job_id: "DT-910482",
-        media_type: file.type.startsWith("video") ? "video" : "image",
-        file_size_bytes: file.size || 18400000,
-        forensic_details: {
-          chain_of_custody_verified: true,
-          hash_algorithm: "SHA-256",
-          section_65b_ready: true,
-        },
-      });
+    } catch (err: any) {
+      setErrorMessage(
+        err?.message ||
+          "Failed to connect to DeepTrace Forensic Engine (http://localhost:8000). Please verify backend is running."
+      );
+    } finally {
+      setIsScanning(false);
+    }
+  };
+
+  const handleUrlSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanUrl = mediaUrl.trim();
+    if (!cleanUrl) return;
+
+    if (!cleanUrl.startsWith("http://") && !cleanUrl.startsWith("https://")) {
+      setErrorMessage("Please enter a valid URL starting with http:// or https://");
+      return;
+    }
+
+    const guessedName = cleanUrl.split("/").pop()?.split("?")[0] || "media_url_stream";
+    setFileName(guessedName);
+    setFileType(
+      guessedName.match(/\.(mp4|mov|avi|webm|mkv)$/i) ? "video" : "image"
+    );
+    setIsScanning(true);
+    setErrorMessage(null);
+
+    try {
+      const res = await analyzeMediaUrl(cleanUrl);
+      setResult(res);
+    } catch (err: any) {
+      setErrorMessage(
+        err?.message ||
+          "Failed to download and analyze media from URL. Please check the URL or backend connection."
+      );
     } finally {
       setIsScanning(false);
     }
@@ -118,7 +148,7 @@ export default function MediaScannerPage() {
           Media Scanner
         </h1>
         <p className="text-[15px] sm:text-[17px] text-apple-text-secondary mt-1 max-w-[620px]">
-          Inspect video and photographic files for sensor noise irregularities, diffusion grid artifacts, and face swaps.
+          Inspect video and photographic files or public media URLs for sensor noise irregularities, diffusion grid artifacts, and face swaps.
         </p>
       </div>
 
@@ -146,60 +176,146 @@ export default function MediaScannerPage() {
           </div>
         </div>
       ) : !result ? (
-        <div className="max-w-[680px] mx-auto">
-          {/* Dropzone */}
-          <div
-            onDragOver={(e) => {
-              e.preventDefault();
-              setIsDragging(true);
-            }}
-            onDragLeave={() => setIsDragging(false)}
-            onDrop={onDrop}
-            onClick={() => fileInputRef.current?.click()}
-            className={`relative overflow-hidden flex flex-col items-center justify-center p-12 sm:p-16 rounded-3xl bg-apple-surface border-2 border-dashed transition-all cursor-pointer ${
-              isDragging
-                ? "border-apple-blue bg-apple-surface-secondary"
-                : "border-apple-hairline hover:border-apple-hairline-strong"
-            } shadow-apple-subtle`}
-          >
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*,video/*"
-              className="hidden"
-              onChange={(e) => {
-                if (e.target.files && e.target.files[0]) {
-                  handleFile(e.target.files[0]);
-                }
-              }}
-            />
-
-            <div className="w-14 h-14 rounded-full bg-apple-surface-secondary flex items-center justify-center mb-5 text-apple-blue">
-              <UploadCloud className="w-7 h-7" strokeWidth={1.5} />
+        <div className="max-w-[680px] mx-auto space-y-6">
+          {/* Mode Switcher Tabs */}
+          <div className="flex justify-center">
+            <div className="inline-flex rounded-full bg-apple-surface border border-apple-hairline p-1 shadow-apple-subtle">
+              <button
+                type="button"
+                onClick={() => {
+                  setScanMode("file");
+                  setErrorMessage(null);
+                }}
+                className={`px-5 py-2 rounded-full text-[13px] font-medium transition-all ${
+                  scanMode === "file"
+                    ? "bg-apple-blue text-white shadow-sm"
+                    : "text-apple-text-secondary hover:text-apple-text"
+                }`}
+              >
+                Upload File Exhibit
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setScanMode("url");
+                  setErrorMessage(null);
+                }}
+                className={`px-5 py-2 rounded-full text-[13px] font-medium transition-all ${
+                  scanMode === "url"
+                    ? "bg-apple-blue text-white shadow-sm"
+                    : "text-apple-text-secondary hover:text-apple-text"
+                }`}
+              >
+                Scan Media URL
+              </button>
             </div>
-
-            <h3 className="text-[18px] font-semibold text-apple-text mb-1">
-              Select or drop media exhibit
-            </h3>
-            <p className="text-[13px] text-apple-text-secondary mb-6 text-center max-w-[340px]">
-              Supports MP4, MOV, CCTV AVI, JPEG, and PNG. Files are evaluated locally with cryptographic hashing.
-            </p>
-
-            <button
-              type="button"
-              className="px-6 py-2.5 rounded-full bg-apple-surface-secondary hover:bg-apple-surface-tertiary border border-apple-hairline text-apple-text text-[13px] font-medium transition-colors"
-            >
-              Browse Files
-            </button>
           </div>
 
-          {/* Quick Demo Presets */}
+          {/* Error Banner if any */}
+          {errorMessage && (
+            <div className="p-4 rounded-2xl bg-apple-red/10 border border-apple-red/20 text-apple-red text-[13px] flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="font-semibold mb-0.5">Analysis Connection Error</p>
+                <p className="text-apple-text-secondary text-xs">{errorMessage}</p>
+              </div>
+            </div>
+          )}
+
+          {scanMode === "file" ? (
+            /* File Dropzone */
+            <div
+              onDragOver={(e) => {
+                e.preventDefault();
+                setIsDragging(true);
+              }}
+              onDragLeave={() => setIsDragging(false)}
+              onDrop={onDrop}
+              onClick={() => fileInputRef.current?.click()}
+              className={`relative overflow-hidden flex flex-col items-center justify-center p-12 sm:p-16 rounded-3xl bg-apple-surface border-2 border-dashed transition-all cursor-pointer ${
+                isDragging
+                  ? "border-apple-blue bg-apple-surface-secondary"
+                  : "border-apple-hairline hover:border-apple-hairline-strong"
+              } shadow-apple-subtle`}
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,video/*"
+                className="hidden"
+                onChange={(e) => {
+                  if (e.target.files && e.target.files[0]) {
+                    handleFile(e.target.files[0]);
+                  }
+                }}
+              />
+
+              <div className="w-14 h-14 rounded-full bg-apple-surface-secondary flex items-center justify-center mb-5 text-apple-blue">
+                <UploadCloud className="w-7 h-7" strokeWidth={1.5} />
+              </div>
+
+              <h3 className="text-[18px] font-semibold text-apple-text mb-1">
+                Select or drop media exhibit
+              </h3>
+              <p className="text-[13px] text-apple-text-secondary mb-6 text-center max-w-[340px]">
+                Supports MP4, MOV, CCTV AVI, JPEG, PNG, and WebP. Evaluated through 2D-FFT, CFA demosaicing, and PRNU noise residual filters.
+              </p>
+
+              <button
+                type="button"
+                className="px-6 py-2.5 rounded-full bg-apple-surface-secondary hover:bg-apple-surface-tertiary border border-apple-hairline text-apple-text text-[13px] font-medium transition-colors"
+              >
+                Browse Files
+              </button>
+            </div>
+          ) : (
+            /* URL Input Form */
+            <form
+              onSubmit={handleUrlSubmit}
+              className="p-8 sm:p-12 rounded-3xl bg-apple-surface border border-apple-hairline shadow-apple-subtle space-y-6"
+            >
+              <div className="flex flex-col items-center text-center space-y-2">
+                <div className="w-14 h-14 rounded-full bg-apple-surface-secondary flex items-center justify-center text-apple-blue">
+                  <Globe className="w-7 h-7" strokeWidth={1.5} />
+                </div>
+                <h3 className="text-[18px] font-semibold text-apple-text">
+                  Analyze Media via URL
+                </h3>
+                <p className="text-[13px] text-apple-text-secondary max-w-[420px]">
+                  Provide a direct web link to any suspect image (JPEG, PNG, WebP) or video stream (MP4, MOV, WebM).
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="relative flex-1">
+                  <Link2 className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-apple-text-secondary" />
+                  <input
+                    type="url"
+                    value={mediaUrl}
+                    onChange={(e) => setMediaUrl(e.target.value)}
+                    placeholder="https://example.com/suspect_media.mp4 or .jpg"
+                    className="w-full pl-10 pr-4 py-3 rounded-full bg-apple-surface-secondary border border-apple-hairline text-[14px] text-apple-text placeholder:text-apple-text-secondary focus:outline-none focus:border-apple-blue"
+                    required
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="px-6 py-3 rounded-full bg-apple-blue hover:bg-apple-blue-hover text-white text-[14px] font-medium transition-all shadow-apple-subtle shrink-0"
+                >
+                  Analyze URL
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* Quick Police Presets for Demonstration */}
           <div className="mt-8 text-center">
             <span className="text-[12px] text-apple-text-secondary block mb-3 font-medium">
-              Or test with a police exhibit preset:
+              Or test with calibrated exhibit presets:
             </span>
             <div className="flex flex-wrap items-center justify-center gap-2">
               <button
+                type="button"
                 onClick={() => {
                   setFileName("cctv_alibi_frame_02.mp4");
                   setFileType("video");
@@ -208,12 +324,27 @@ export default function MediaScannerPage() {
                     file_name: "cctv_alibi_frame_02.mp4",
                     sha256_hash: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
                     ai_probability_score: 0.942,
-                    verdict: "Confirmed Diffusion Face Swap",
-                    suspected_engine: "Spatial 2D-FFT + Bayer CFA Model v4",
-                    timestamp: "2026-10-02T19:15:30Z",
+                    verdict: "SYNTHETIC / AI-GENERATED",
+                    suspected_engine: "Wav2Lip / DeepFaceLab Face Swap",
+                    timestamp: new Date().toISOString(),
                     job_id: "DT-910482",
                     media_type: "video",
                     file_size_bytes: 18400000,
+                    forensic_details: {
+                      chain_of_custody_verified: true,
+                      hash_algorithm: "SHA-256",
+                      section_65b_ready: true,
+                      detected_artifacts: [
+                        "Dense optical flow divergence reveals non-physical motion morphing",
+                        "Facial patch boundary re-encoding discontinuities detected (face swap signature)",
+                      ],
+                      metrics: {
+                        temporal_incoherence_score: 0.88,
+                        optical_flow_jitter: 0.82,
+                        frame_fft_anomaly_score: 0.74,
+                        analyzed_frames: 24,
+                      },
+                    },
                   });
                 }}
                 className="px-3.5 py-1.5 rounded-full bg-apple-surface border border-apple-hairline text-[12px] text-apple-text hover:bg-apple-surface-secondary transition-colors"
@@ -221,6 +352,7 @@ export default function MediaScannerPage() {
                 CCTV Face Swap (MP4)
               </button>
               <button
+                type="button"
                 onClick={() => {
                   setFileName("dg_police_id_photo.png");
                   setFileType("image");
@@ -229,17 +361,71 @@ export default function MediaScannerPage() {
                     file_name: "dg_police_id_photo.png",
                     sha256_hash: "7d865e959b2466918c9863afca942d0fb89d7c9ac0c99bafc3749504ded97730",
                     ai_probability_score: 0.912,
-                    verdict: "Synthetic Diffusion Artifacts Detected",
-                    suspected_engine: "Spatial 2D-FFT + Bayer CFA Model v4",
-                    timestamp: "2026-10-02T16:30:00Z",
+                    verdict: "SYNTHETIC / AI-GENERATED",
+                    suspected_engine: "Midjourney v6 / Latent Upscaler",
+                    timestamp: new Date().toISOString(),
                     job_id: "DT-739104",
                     media_type: "image",
                     file_size_bytes: 2100000,
+                    forensic_details: {
+                      chain_of_custody_verified: true,
+                      hash_algorithm: "SHA-256",
+                      section_65b_ready: true,
+                      detected_artifacts: [
+                        "2D-FFT azimuthal spectrum shows periodic upscaling peak anomalies (peak ratio: 2.85x)",
+                        "Absence of optical Bayer Color Filter Array (CFA) demosaicing residuals",
+                      ],
+                      metrics: {
+                        fft_frequency_anomaly_score: 0.89,
+                        fft_peak_ratio: 2.85,
+                        spectral_decay_slope: 0.85,
+                        bayer_cfa_correlation: 0.08,
+                        noise_std_dev: 0.92,
+                        noise_residual_anomaly_score: 0.85,
+                      },
+                    },
                   });
                 }}
                 className="px-3.5 py-1.5 rounded-full bg-apple-surface border border-apple-hairline text-[12px] text-apple-text hover:bg-apple-surface-secondary transition-colors"
               >
                 Imposter Police ID (PNG)
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setFileName("crime_scene_camera_raw.jpg");
+                  setFileType("image");
+                  setResult({
+                    status: "completed",
+                    file_name: "crime_scene_camera_raw.jpg",
+                    sha256_hash: "4a28b031b26f5d47012678da4b8c9e0134765abcdef1234567890abcdef12345",
+                    ai_probability_score: 0.082,
+                    verdict: "AUTHENTIC / ORGANIC",
+                    suspected_engine: "Authentic Camera Capture (Optical Sensor)",
+                    timestamp: new Date().toISOString(),
+                    job_id: "DT-204851",
+                    media_type: "image",
+                    file_size_bytes: 4200000,
+                    forensic_details: {
+                      chain_of_custody_verified: true,
+                      hash_algorithm: "SHA-256",
+                      section_65b_ready: true,
+                      detected_artifacts: [],
+                      metrics: {
+                        fft_frequency_anomaly_score: 0.12,
+                        fft_peak_ratio: 1.12,
+                        spectral_decay_slope: 2.05,
+                        bayer_cfa_correlation: 0.68,
+                        noise_std_dev: 4.82,
+                        noise_residual_anomaly_score: 0.15,
+                        has_camera_hardware_trace: true,
+                      },
+                    },
+                  });
+                }}
+                className="px-3.5 py-1.5 rounded-full bg-apple-surface border border-apple-hairline text-[12px] text-apple-text hover:bg-apple-surface-secondary transition-colors"
+              >
+                Authentic Camera RAW (JPG)
               </button>
             </div>
           </div>
@@ -284,9 +470,11 @@ export default function MediaScannerPage() {
               {/* Action Buttons */}
               <div className="flex items-center gap-3">
                 <button
+                  type="button"
                   onClick={() => {
                     setResult(null);
                     setFileName("");
+                    setErrorMessage(null);
                   }}
                   className="px-4 py-2 rounded-full bg-apple-surface-secondary hover:bg-apple-surface-tertiary text-apple-text text-[13px] font-medium transition-colors"
                 >
@@ -383,7 +571,7 @@ export default function MediaScannerPage() {
                       : "text-apple-text"
                   }`}>
                     {result.forensic_details?.metrics?.spectral_decay_slope !== undefined
-                      ? `α=${result.forensic_details.metrics.spectral_decay_slope} (Peak ${result.forensic_details.metrics.fft_peak_ratio}x)`
+                      ? `α=${result.forensic_details.metrics.spectral_decay_slope} (Peak ${result.forensic_details.metrics.fft_peak_ratio || 1.0}x)`
                       : "Azimuthal decay standard"}
                   </span>
                 </div>
@@ -403,6 +591,7 @@ export default function MediaScannerPage() {
                   <div className="flex items-center justify-between mb-1 text-[12px] text-apple-text-secondary">
                     <span>SHA-256 Bitstream Hash</span>
                     <button
+                      type="button"
                       onClick={() => copyHash(result.sha256_hash)}
                       className="text-apple-blue hover:underline flex items-center gap-1"
                     >

@@ -13,6 +13,7 @@ import {
   Play,
   Pause,
   Activity,
+  AlertCircle,
 } from "lucide-react";
 import { analyzeAudio, AudioAnalysisResponse } from "@/lib/api";
 import {
@@ -26,6 +27,7 @@ import {
 
 export default function AudioForensicsPage() {
   const [isScanning, setIsScanning] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [result, setResult] = useState<AudioAnalysisResponse | null>(null);
   const [fileName, setFileName] = useState("");
   const [copiedHash, setCopiedHash] = useState(false);
@@ -35,37 +37,16 @@ export default function AudioForensicsPage() {
   const processAudio = async (file: File) => {
     setIsScanning(true);
     setFileName(file.name);
+    setErrorMessage(null);
 
     try {
       const res = await analyzeAudio(file);
       setResult(res);
-    } catch {
-      // Realistic fallback mock data
-      setResult({
-        job_id: "DT-847294",
-        status: "completed",
-        original_filename: file.name,
-        sha256_original: "b7a892c90f23d14451c86e09fb8d97531234abcd5678ef901234567890abcdef",
-        voice_authenticity: "Synthetic Voice Clone (HiFi-GAN Phase Gap)",
-        confidence_score: 0.985,
-        duration_seconds: 14.8,
-        sample_rate_hz: 44100,
-        segments_analyzed: 4,
-        model_version: "ElevenLabs v2 / HiFi-GAN Vocoder Phase Detection",
-        completed_at: "2026-10-02T20:44:12Z",
-        forensic_signals: [
-          {
-            name: "F0 Pitch Micro-Contour",
-            score: 0.99,
-            description: "Robotic pitch smoothness inconsistent with human vocal cord elasticity.",
-          },
-          {
-            name: "Phase Harmonic Discontinuity",
-            score: 0.98,
-            description: "High-band phase artifacts from neural vocoder synthesis.",
-          },
-        ],
-      });
+    } catch (err: any) {
+      setErrorMessage(
+        err?.message ||
+          "Failed to connect to DeepTrace Acoustic Core (http://localhost:8000). Please verify backend is running."
+      );
     } finally {
       setIsScanning(false);
     }
@@ -138,7 +119,18 @@ export default function AudioForensicsPage() {
           </div>
         </div>
       ) : !result ? (
-        <div className="max-w-[680px] mx-auto">
+        <div className="max-w-[680px] mx-auto space-y-6">
+          {/* Error Banner */}
+          {errorMessage && (
+            <div className="p-4 rounded-2xl bg-apple-red/10 border border-apple-red/20 text-apple-red text-[13px] flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="font-semibold mb-0.5">Acoustic Analysis Error</p>
+                <p className="text-apple-text-secondary text-xs">{errorMessage}</p>
+              </div>
+            </div>
+          )}
+
           {/* Dropzone */}
           <div
             onClick={() => fileInputRef.current?.click()}
@@ -175,19 +167,91 @@ export default function AudioForensicsPage() {
             </button>
           </div>
 
-          {/* Quick Demo Preset */}
+          {/* Quick Demo Presets */}
           <div className="mt-8 text-center">
             <span className="text-[12px] text-apple-text-secondary block mb-3 font-medium">
-              Or test with intercepted wiretap sample:
+              Or test with calibrated voice exhibit presets:
             </span>
-            <button
-              onClick={() => {
-                processAudio(new File(["sample audio bytes"], "fir_42_voice_intercept.wav", { type: "audio/wav" }));
-              }}
-              className="px-4 py-2 rounded-full bg-apple-surface border border-apple-hairline text-[12px] text-apple-text hover:bg-apple-surface-secondary transition-colors"
-            >
-              Telegram Audio Wiretap (FIR-2026-CHD-042)
-            </button>
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setFileName("fir_42_voice_clone.wav");
+                  setResult({
+                    job_id: "DT-847294",
+                    status: "completed",
+                    original_filename: "fir_42_voice_clone.wav",
+                    sha256_original: "b7a892c90f23d14451c86e09fb8d97531234abcd5678ef901234567890abcdef",
+                    voice_authenticity: "SYNTHETIC / AI-GENERATED",
+                    confidence_score: 0.985,
+                    duration_seconds: 14.8,
+                    sample_rate_hz: 44100,
+                    segments_analyzed: 4,
+                    model_version: "ElevenLabs Voice Clone (HiFi-GAN Vocoder)",
+                    completed_at: new Date().toISOString(),
+                    forensic_signals: [
+                      {
+                        name: "F0 Pitch Micro-Contour & Jitter",
+                        score: 0.99,
+                        description: "Measured pitch jitter: 0.08% (unnatural robotic pitch stability, human normal: 0.5% - 1.8%).",
+                      },
+                      {
+                        name: "Vocoder Phase Discontinuity",
+                        score: 0.98,
+                        description: "Steep spectral roll-off cliff detected above 8 kHz (neural vocoder upsampling artifact).",
+                      },
+                      {
+                        name: "Harmonic Overtone Spectrum",
+                        score: 0.94,
+                        description: "Complete mathematical zero silence detected during speech pauses.",
+                      },
+                    ],
+                  });
+                }}
+                className="px-4 py-2 rounded-full bg-apple-surface border border-apple-hairline text-[12px] text-apple-text hover:bg-apple-surface-secondary transition-colors"
+              >
+                Cloned Voice Intercept (ElevenLabs)
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setFileName("police_radio_recording.wav");
+                  setResult({
+                    job_id: "DT-119284",
+                    status: "completed",
+                    original_filename: "police_radio_recording.wav",
+                    sha256_original: "89acb31498bfe1234149871589134acbe1238914abce98124bce8971234abcef",
+                    voice_authenticity: "AUTHENTIC / ORGANIC",
+                    confidence_score: 0.092,
+                    duration_seconds: 22.4,
+                    sample_rate_hz: 44100,
+                    segments_analyzed: 7,
+                    model_version: "Authentic Human Vocal Capture (Microphone)",
+                    completed_at: new Date().toISOString(),
+                    forensic_signals: [
+                      {
+                        name: "F0 Pitch Micro-Contour & Jitter",
+                        score: 0.12,
+                        description: "Measured pitch jitter: 1.15% (natural physiological vocal fold elasticity).",
+                      },
+                      {
+                        name: "Vocoder Phase Discontinuity",
+                        score: 0.08,
+                        description: "Smooth continuous acoustic power spectrum decay across 20 kHz human hearing band.",
+                      },
+                      {
+                        name: "Harmonic Overtone Spectrum",
+                        score: 0.10,
+                        description: "Organic acoustic room tone noise floor verified (-52 dB).",
+                      },
+                    ],
+                  });
+                }}
+                className="px-4 py-2 rounded-full bg-apple-surface border border-apple-hairline text-[12px] text-apple-text hover:bg-apple-surface-secondary transition-colors"
+              >
+                Authentic Human Wiretap (Radio)
+              </button>
+            </div>
           </div>
         </div>
       ) : (
@@ -229,9 +293,11 @@ export default function AudioForensicsPage() {
 
               <div className="flex items-center gap-3">
                 <button
+                  type="button"
                   onClick={() => {
                     setResult(null);
                     setFileName("");
+                    setErrorMessage(null);
                   }}
                   className="px-4 py-2 rounded-full bg-apple-surface-secondary hover:bg-apple-surface-tertiary text-apple-text text-[13px] font-medium transition-colors"
                 >
@@ -251,6 +317,7 @@ export default function AudioForensicsPage() {
             <div className="py-2 border-b border-apple-hairline">
               <div className="flex items-center justify-between mb-3 text-[13px]">
                 <button
+                  type="button"
                   onClick={() => setIsPlaying(!isPlaying)}
                   className="flex items-center gap-2 text-apple-blue font-medium hover:underline"
                 >
@@ -329,6 +396,7 @@ export default function AudioForensicsPage() {
                   <div className="flex items-center justify-between mb-1 text-[12px] text-apple-text-secondary">
                     <span>SHA-256 Digest</span>
                     <button
+                      type="button"
                       onClick={() => copyHash(result.sha256_original)}
                       className="text-apple-blue hover:underline flex items-center gap-1"
                     >
@@ -355,14 +423,14 @@ export default function AudioForensicsPage() {
             {/* Custody Timeline */}
             <div className="pt-4 border-t border-apple-hairline">
               <h4 className="text-[14px] font-semibold text-apple-text mb-4">
-                Acoustic Chain of Custody
+                Custody Chain Verification
               </h4>
               <CustodyTimeline steps={audioCustodySteps} stepDelay={0.3} />
             </div>
 
             {/* Sealed Stamp Verification */}
-            <div className="pt-2 border-t border-apple-hairline flex justify-center">
-              <SealedStamp label="VOICE AUTHENTICATED" />
+            <div className="pt-4 border-t border-apple-hairline flex justify-center">
+              <SealedStamp label="AUDIO SEALED" />
             </div>
           </div>
         </motion.div>
