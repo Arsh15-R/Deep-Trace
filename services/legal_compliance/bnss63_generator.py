@@ -1,7 +1,7 @@
 """
-DeepTrace Legal Compliance Engine — BNSS 2023 Section 63 Certificate Generator
+DeepTrace Legal Compliance Engine — Section 63 BSA 2023 Certificate Generator
 Generates formal court-admissible electronic record certificates under
-Section 63 (replacing Section 65B of Indian Evidence Act) of BNSS 2023.
+Section 63 (replacing Section 65B of Indian Evidence Act) of Bharatiya Sakshya Adhiniyam (BSA), 2023.
 """
 
 import json
@@ -11,7 +11,7 @@ from typing import Dict, Any, Optional
 
 class BNSS63CertificateGenerator:
     """
-    Renders statutory certificates under Section 63 of BNSS 2023.
+    Renders statutory certificates under Section 63 of Bharatiya Sakshya Adhiniyam (BSA), 2023.
     """
 
     @classmethod
@@ -31,14 +31,14 @@ class BNSS63CertificateGenerator:
         metadata_summary: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """
-        Builds the structured data model for a BNSS 2023 Section 63 Certificate.
+        Builds the structured data model for a Section 63 BSA 2023 Certificate.
         """
         now = datetime.now(timezone.utc)
-        certificate_id = f"BNSS-63-DT-{case_id.replace('#', '')}-{now.strftime('%Y%m%d%H%M')}"
+        certificate_id = f"BSA-63-DT-{case_id.replace('#', '')}-{now.strftime('%Y%m%d%H%M')}"
 
         certificate = {
             "certificate_id": certificate_id,
-            "statutory_act": "Bharatiya Nagarik Suraksha Sanhita, 2023 (Section 63)",
+            "statutory_act": "Section 63, Bharatiya Sakshya Adhiniyam (BSA) 2023",
             "supersedes": "Section 65B of the Indian Evidence Act, 1872",
             "issued_at_utc": now.isoformat(),
             "case_id": case_id,
@@ -56,9 +56,9 @@ class BNSS63CertificateGenerator:
                 "title": "PART B: SYSTEM INTEGRITY & SECURE CUSTODY DECLARATION",
                 "system_name": "DeepTrace Dynamic Multi-Modal AI Forensics Engine",
                 "hash_standard": "NIST FIPS 180-4 (SHA-256)",
-                "storage_type": "InterPlanetary File System (IPFS) via Pinata Distributed Pinning",
+                "storage_type": "Write-protected evidence copy via Pinata Distributed IPFS Pinning",
                 "system_operating_condition": "System was operating properly and at all material times with no breach of data integrity.",
-                "tamper_evidence_proof": "Content-addressed CID prevents retrospective manipulation, silent alteration, or file corruption.",
+                "tamper_evidence_proof": "Any change to a sealed file changes its SHA-256 hash and is detected.",
                 "forensic_telemetry": {
                     "synthetic_probability_percentage": round(ai_probability_score * 100, 2),
                     "verdict": "SYNTHETIC / AI-GENERATED" if ai_probability_score > 0.65 else ("SUSPICIOUS" if ai_probability_score > 0.35 else "AUTHENTIC / ORGANIC"),
@@ -73,7 +73,8 @@ class BNSS63CertificateGenerator:
                 "affirmation": (
                     f"I, {officer_name} ({officer_badge}), hereby certify that the electronic record "
                     f"identified by SHA-256 hash '{sha256_hash}' was collected, hashed at the instant of receipt, "
-                    f"and preserved under immutable custody in compliance with Section 63 of BNSS 2023. "
+                    f"and preserved under immutable custody in compliance with Section 63 of Bharatiya Sakshya Adhiniyam (BSA), 2023 "
+                    f"(superseding Section 65B of the Indian Evidence Act, 1872). "
                     "To the best of my knowledge and belief, no unauthorized modifications have occurred."
                 ),
                 "digital_verification_status": "CRYPTOGRAPHICALLY_VERIFIED",
@@ -98,7 +99,7 @@ class BNSS63CertificateGenerator:
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>BNSS 2023 Sec 63 Certificate — {cert['certificate_id']}</title>
+    <title>Section 63 BSA 2023 Certificate — {cert['certificate_id']}</title>
     <style>
         body {{
             font-family: 'Times New Roman', serif;
@@ -215,8 +216,8 @@ class BNSS63CertificateGenerator:
         <div class="header">
             <div class="national-emblem">Government Evidence Submission • Forensic Audit Division</div>
             <h1>Certificate of Electronic Evidence Admissibility</h1>
-            <h2>Under Section 63 of Bharatiya Nagarik Suraksha Sanhita, 2023 (BNSS 2023)</h2>
-            <div style="font-size: 11px; margin-top: 4px; color: #6b7280;">(Corresponding to former Section 65B of Indian Evidence Act, 1872)</div>
+            <h2>Under Section 63 of Bharatiya Sakshya Adhiniyam, 2023 (BSA 2023)</h2>
+            <div style="font-size: 11px; margin-top: 4px; color: #6b7280;">(Superseding Section 65B of the Indian Evidence Act, 1872)</div>
         </div>
 
         <div class="meta-bar">

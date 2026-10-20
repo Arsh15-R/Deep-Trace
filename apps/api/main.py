@@ -642,8 +642,8 @@ async def generate_court_certificate_pdf(
 
         story.append(Paragraph("GOVERNMENT OF INDIA • FORENSIC EVIDENCE DIVISION", subtitle_style))
         story.append(Paragraph("CERTIFICATE OF ELECTRONIC EVIDENCE ADMISSIBILITY", title_style))
-        story.append(Paragraph("Under Section 63 of Bharatiya Nagarik Suraksha Sanhita, 2023 (BNSS 2023)", subtitle_style))
-        story.append(Paragraph("(Formerly Section 65B of the Indian Evidence Act, 1872)", subtitle_style))
+        story.append(Paragraph("Under Section 63, Bharatiya Sakshya Adhiniyam (BSA) 2023", subtitle_style))
+        story.append(Paragraph("(Superseding Section 65B of the Indian Evidence Act, 1872)", subtitle_style))
         story.append(Spacer(1, 15))
 
         # Meta table

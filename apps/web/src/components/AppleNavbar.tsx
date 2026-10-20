@@ -3,13 +3,11 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useTheme } from "next-themes";
 import {
   Search,
-  Sun,
-  Moon,
   Menu,
   X,
+  Shield,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import OfficerAuthModal from "./OfficerAuthModal";
@@ -28,7 +26,6 @@ export default function AppleNavbar({
 }: AppleNavbarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { theme, setTheme, resolvedTheme } = useTheme();
   const { profile, signOut } = useAuth();
 
   const [mounted, setMounted] = useState(false);
@@ -42,25 +39,14 @@ export default function AppleNavbar({
 
   const navLinks = [
     { href: "/dashboard", label: "Command Center" },
-    { href: "/scan", label: "Scanner" },
+    { href: "/scan", label: "Media Scanner" },
     { href: "/audio", label: "Voice Lab" },
-    { href: "/intake", label: "Intake" },
-    { href: "/evidence", label: "Vault" },
-    { href: "/cases", label: "Certificates" },
+    { href: "/evidence", label: "Evidence Vault" },
+    { href: "/cases", label: "Cases" },
+    { href: "/extension", label: "Web Radar" },
   ];
 
-  // If admin, add Admin Panel to nav links or dropdown
   const isAdmin = profile?.role === "admin";
-
-  const firstName = profile?.full_name ? profile.full_name.split(" ")[0] : "Officer";
-  const initials = profile?.full_name
-    ? profile.full_name
-        .split(" ")
-        .map((p) => p[0])
-        .slice(0, 2)
-        .join("")
-        .toUpperCase()
-    : "OF";
 
   const handleOpenPin = () => {
     if (onOpenPinModal) {
@@ -80,21 +66,28 @@ export default function AppleNavbar({
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full h-12 apple-vibrancy border-b border-apple-hairline/60 transition-colors">
-        <div className="max-w-[1020px] mx-auto h-full px-4 sm:px-6 flex items-center justify-between text-[13px]">
-          {/* Left: DeepTrace Wordmark */}
+      <header className="sticky top-0 z-40 w-full h-13 bg-canvas/95 backdrop-blur-md border-b border-border-subtle transition-colors">
+        <div className="max-w-[1100px] mx-auto h-full px-4 sm:px-6 flex items-center justify-between text-[13px]">
+          {/* Brand: Government Cyber Forensics Identity */}
           <Link
             href="/"
-            className="flex items-center gap-1.5 font-semibold tracking-tight text-apple-text hover:opacity-75 transition-opacity"
+            className="flex items-center gap-2.5 font-semibold tracking-tight text-text-primary hover:text-white transition-colors"
           >
-            <span className="w-4 h-4 rounded-full border-[1.5px] border-apple-text flex items-center justify-center">
-              <span className="w-1.5 h-1.5 rounded-full bg-apple-blue" />
-            </span>
-            <span className="text-[14px]">DeepTrace</span>
+            <div className="w-6 h-6 rounded-[4px] bg-surface-elevated border border-border-default flex items-center justify-center text-accent">
+              <Shield className="w-3.5 h-3.5" strokeWidth={2} />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[13px] font-semibold tracking-tight leading-tight">
+                DeepTrace
+              </span>
+              <span className="text-[10px] text-text-tertiary uppercase tracking-wider font-mono">
+                Cyber Forensics Core
+              </span>
+            </div>
           </Link>
 
-          {/* Center: 5-6 Apple-style text links */}
-          <nav className="hidden md:flex items-center space-x-7">
+          {/* Navigation Links (Matching Routes) */}
+          <nav className="hidden md:flex items-center space-x-6">
             {navLinks.map((link) => {
               const isActive =
                 pathname === link.href ||
@@ -103,10 +96,10 @@ export default function AppleNavbar({
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`transition-colors duration-150 ${
+                  className={`text-[13px] py-1 transition-colors duration-150 ${
                     isActive
-                      ? "text-apple-text font-medium"
-                      : "text-apple-text-secondary hover:text-apple-text"
+                      ? "text-text-primary font-medium border-b border-accent"
+                      : "text-text-secondary hover:text-text-primary"
                   }`}
                 >
                   {link.label}
@@ -115,41 +108,27 @@ export default function AppleNavbar({
             })}
           </nav>
 
-          {/* Right: Search (Cmd+K), Theme Toggle, Officer Avatar & Dropdown */}
-          <div className="flex items-center gap-3">
-            {/* Search Trigger */}
+          {/* Right Action Tools */}
+          <div className="flex items-center gap-2">
+            {/* Command Palette Trigger */}
             <button
               onClick={handleOpenCmdk}
-              aria-label="Search cases (Command + K)"
-              className="p-1.5 text-apple-text-secondary hover:text-apple-text transition-colors rounded-full hover:bg-apple-surface-secondary"
-              title="Search cases (⌘K)"
+              aria-label="Search cases (Ctrl + K)"
+              className="inline-flex items-center gap-2 px-2.5 py-1.5 text-text-tertiary hover:text-text-secondary bg-surface border border-border-subtle rounded-[6px] text-xs font-mono transition-colors duration-150"
+              title="Search records (Ctrl+K)"
             >
-              <Search className="w-4 h-4" strokeWidth={1.5} />
+              <Search className="w-3.5 h-3.5" strokeWidth={1.5} />
+              <span className="hidden sm:inline">Search</span>
+              <kbd className="hidden sm:inline text-[10px] bg-surface-elevated px-1 py-0.5 rounded border border-border-subtle">
+                ⌘K
+              </kbd>
             </button>
 
-            {/* Theme Toggle */}
-            {mounted && (
-              <button
-                onClick={() =>
-                  setTheme(resolvedTheme === "dark" ? "light" : "dark")
-                }
-                aria-label="Toggle display theme"
-                className="p-1.5 text-apple-text-secondary hover:text-apple-text transition-colors rounded-full hover:bg-apple-surface-secondary"
-                title={resolvedTheme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-              >
-                {resolvedTheme === "dark" ? (
-                  <Sun className="w-4 h-4" strokeWidth={1.5} />
-                ) : (
-                  <Moon className="w-4 h-4" strokeWidth={1.5} />
-                )}
-              </button>
-            )}
-
-            {/* Profile Menu Component with Rotating Ring, Live Dot, and Apple Vibrancy */}
+            {/* Profile Dropdown */}
             <ProfileMenu
               user={{
                 name: profile?.full_name || "Investigating Officer",
-                email: profile?.email || "officer@police.gov.in",
+                email: profile?.email || "officer@cyber.police.gov.in",
                 role: profile?.role || "officer",
                 avatarUrl: profile?.avatar_url,
               }}
@@ -163,11 +142,11 @@ export default function AppleNavbar({
               }}
             />
 
-            {/* Mobile menu button */}
+            {/* Mobile menu toggle */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-1.5 text-apple-text-secondary hover:text-apple-text"
-              aria-label="Open menu"
+              className="md:hidden p-1.5 text-text-secondary hover:text-text-primary rounded-[6px]"
+              aria-label="Toggle navigation menu"
             >
               {mobileMenuOpen ? (
                 <X className="w-4 h-4" strokeWidth={1.5} />
@@ -182,17 +161,17 @@ export default function AppleNavbar({
         <AnimatePresence>
           {mobileMenuOpen && (
             <motion.div
-              initial={{ opacity: 0, y: -8 }}
+              initial={{ opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              className="md:hidden border-b border-apple-hairline apple-vibrancy px-6 py-4 flex flex-col space-y-3"
+              exit={{ opacity: 0, y: -4 }}
+              className="md:hidden border-b border-border-subtle bg-surface px-6 py-4 flex flex-col space-y-2.5"
             >
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="text-apple-text hover:text-apple-blue py-1 text-[15px]"
+                  className="text-text-secondary hover:text-text-primary py-1 text-[14px]"
                 >
                   {link.label}
                 </Link>
@@ -201,7 +180,7 @@ export default function AppleNavbar({
                 <Link
                   href="/admin"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="text-apple-blue font-medium py-1 text-[15px]"
+                  className="text-accent font-medium py-1 text-[14px]"
                 >
                   Admin Panel
                 </Link>
@@ -211,7 +190,6 @@ export default function AppleNavbar({
         </AnimatePresence>
       </header>
 
-      {/* Embedded Modals if not externally controlled */}
       <OfficerAuthModal
         isOpen={isPinOpen}
         onClose={() => setIsPinOpen(false)}

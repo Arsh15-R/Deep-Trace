@@ -1,43 +1,67 @@
-/* DeepTrace Monochrome Motion Kit Design Tokens */
-/* Palette: #FFFFFF  #000000  #B0B0B0  #7D7D7D  #4D4D4D */
+/* DeepTrace Cyber Forensics Design Tokens
+   Government-Grade Law Enforcement Standard (BSA 2023 Section 63 Compliant)
+   Near-black palette, restrained neutral grays, single muted teal accent. */
 
-:root,
-[data-theme="dark"],
-.dark {
-  --bg: #000000;
-  --fg: #ffffff;
-  --muted: #b0b0b0;
-  --subtle: #7d7d7d;
-  --line: #4d4d4d;
-  --surface: rgba(255, 255, 255, 0.04);
-  --hover: rgba(255, 255, 255, 0.07);
-}
+:root {
+  /* Neutral Canvas & Surfaces */
+  --bg-canvas: #0B0D10;
+  --bg-surface: #12151A;
+  --bg-surface-elevated: #181D24;
+  --bg-surface-hover: #1F242D;
+  --bg-surface-active: #262D38;
 
-[data-theme="light"],
-html:not(.dark) {
-  --bg: #ffffff;
-  --fg: #000000;
-  --muted: #4d4d4d;
-  --subtle: #7d7d7d;
-  --line: #b0b0b0;
-  --surface: rgba(0, 0, 0, 0.03);
-  --hover: rgba(0, 0, 0, 0.06);
-}
+  /* 1px Hairline Borders (8-14% White) */
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-default: rgba(255, 255, 255, 0.10);
+  --border-strong: rgba(255, 255, 255, 0.16);
 
-/* Pulsing ring for live / critical dots */
-@keyframes ring-pulse {
-  0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--fg, #ffffff) 45%, transparent); }
-  100% { box-shadow: 0 0 0 9px transparent; }
-}
+  /* Typography Colors */
+  --text-primary: #F3F4F6;
+  --text-secondary: #9CA3AF;
+  --text-tertiary: #6B7280;
+  --text-disabled: #4B5563;
 
-.live-dot {
-  animation: ring-pulse 1.8s ease-out infinite;
-}
+  /* Single Accent: Muted Government Teal */
+  --accent: #0D9488;
+  --accent-hover: #0F766E;
+  --accent-light: #2DD4BF;
+  --accent-subtle: rgba(13, 148, 136, 0.12);
+  --accent-border: rgba(45, 212, 191, 0.28);
 
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
+  /* Forensic Severity Status Tokens (Used strictly for verdicts) */
+  --status-critical: #EF4444;
+  --status-critical-bg: rgba(239, 68, 68, 0.10);
+  --status-critical-border: rgba(239, 68, 68, 0.24);
+
+  --status-warning: #F59E0B;
+  --status-warning-bg: rgba(245, 158, 11, 0.10);
+  --status-warning-border: rgba(245, 158, 11, 0.24);
+
+  --status-verified: #10B981;
+  --status-verified-bg: rgba(16, 185, 129, 0.10);
+  --status-verified-border: rgba(16, 185, 129, 0.24);
+
+  /* Official Paper Document Palette (Judicial Certificates) */
+  --paper-bg: #FBFBFB;
+  --paper-text: #111827;
+  --paper-text-muted: #4B5563;
+  --paper-border: #E5E7EB;
+
+  /* Restrained Border Radius (Strict 6px - 8px scale) */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 8px;
+
+  /* Layout Scale */
+  --max-content-width: 1100px;
+
+  /* Font Stacks */
+  --font-ui: "Inter", "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", Menlo, Consolas, ui-monospace, monospace;
+  --font-serif: Georgia, Cambria, "Times New Roman", Times, serif;
+
+  /* Transitions */
+  --duration-hover: 150ms;
+  --ease-default: cubic-bezier(0.16, 1, 0.3, 1);
 }
